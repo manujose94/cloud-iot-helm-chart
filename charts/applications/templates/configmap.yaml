@@ -1,0 +1,145 @@
+{{- include "checkRequiredGlobalLabels" . }}
+
+{{- if .Values.configmaps.goApi.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-go-api-config
+data:
+  TEST_PROPUSE: {{ .Values.configmaps.goApi.data.TEST_PROPUSE | quote }}
+{{- end }}
+
+{{- if .Values.configmaps.fluentBit.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-fluent-bit-config
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        1
+        Log_Level    debug
+        Daemon       off
+        parsers_file parsers.conf
+
+    [INPUT]
+        Name         tail
+        Path         /var/log/go-api/*.log
+        Parser       docker
+        Tag          go-api
+        Refresh_Interval 1
+        Mem_Buf_Limit   5MB
+        
+    [FILTER]
+        name       expect
+        match      *
+        key_exists level
+        action     warn
+
+    [FILTER]
+        Name         modify
+        Match        go-api
+        Rename       time @timestamp
+        Remove       time
+
+    [OUTPUT]
+        name        loki
+        match       *
+        host        loki-service
+        port        3100
+        labels      job=fluentbit
+  parsers.conf: |
+    [PARSER]
+        Name         docker
+        Format       json
+        Time_Key     time
+        Time_Format  %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep    On
+
+    [PARSER]
+        Name        time-iso8601
+        Format      regex
+        Regex       /^(?<time>\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}:\d{1,2}\.\d+(Z|[\+\-]\d{2}(:\d{2})?))/
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+    [PARSER]
+        Name        time-java
+        Format      regex
+        Regex       /^(?<time>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}\.\d{,9})/
+        Time_Key    time
+        Time_Format %Y-%m-%d %H:%M:%S.%L
+{{- end }}
+
+{{- if .Values.configmaps.goSimulator.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-go-simulator-config
+data:
+  LATENCY: {{ .Values.configmaps.goSimulator.data.LATENCY | quote }}
+  MAX_RETRY_CONNECT: {{ .Values.configmaps.goSimulator.data.MAX_RETRY_CONNECT | quote }}
+  RETRY_DELAY_CONNECT: {{ .Values.configmaps.goSimulator.data.RETRY_DELAY_CONNECT | quote }}
+{{- end }}
+
+{{- if .Values.configmaps.fluentBitSimulator.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-fluent-bit-go-simulator-config
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        1
+        Log_Level    debug
+        Daemon       off
+        parsers_file parsers.conf
+
+    [INPUT]
+        Name         tail
+        Path         /var/log/go-simulator/*.log
+        Parser       docker
+        Tag          go-simulator
+        Skip_Long_Lines   On
+        Refresh_Interval 1
+        Mem_Buf_Limit   5MB
+        
+    [FILTER]
+        name       expect
+        match      *
+        key_exists level
+        action     warn
+
+    [FILTER]
+        Name         modify
+        Match        go-simulator
+        Rename       time @timestamp
+        
+    [OUTPUT]
+        name        loki
+        match       *
+        host        loki-service
+        port        3100
+        labels      job=go-simulator
+  parsers.conf: |
+    [PARSER]
+        Name         docker
+        Format       json
+        Time_Key     time
+        Time_Format  %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep    On
+
+    [PARSER]
+        Name        time-iso8601
+        Format      regex
+        Regex       /^(?<time>\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}:\d{1,2}\.\d+(Z|[\+\-]\d{2}(:\d{2})?))/
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+    [PARSER]
+        Name        time-java
+        Format      regex
+        Regex       /^(?<time>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}\.\d{,9})/
+        Time_Key    time
+        Time_Format %Y-%m-%d %H:%M:%S.%L
+{{- end }}

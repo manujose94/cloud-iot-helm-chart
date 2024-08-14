@@ -1,0 +1,98 @@
+global:
+  imagePullPolicy: IfNotPresent
+  labels:
+    project: cloud-iot
+    version: "1.0.0"
+
+deployments:
+  defaultReplicas: 1
+  imagePullPolicy: IfNotPresent
+
+  goApi:
+    enabled: true
+    replicas: 1
+    resources: {}
+
+  goSimulator:
+    enabled: true
+    replicas: 1
+    resources: {}
+
+  iotK8sOperator:
+    enabled: false
+    resources: {}
+    
+  loki:
+    enabled: true
+
+  grafana:
+    enabled: false
+    
+postgres:
+  enabled: true
+  image: mamarbao/postgres:2.0
+  replicas: 1
+  secret:
+    user: "mamarbao"
+    password: "m4n56l.uc5"
+    database: "uc_5"
+
+configmaps:
+  goApi:
+    enabled: true
+    data:
+      TEST_PROPUSE: "true"
+
+  fluentBit:
+    enabled: true
+
+  goSimulator:
+    enabled: true
+    data:
+      LATENCY: "5"
+      MAX_RETRY_CONNECT: "8"
+      RETRY_DELAY_CONNECT: "30"
+
+  fluentBitSimulator:
+    enabled: true
+
+services:
+  goApi:
+    enabled: true
+    name: go-api-service
+    type: ClusterIP
+    port: 80
+
+  loki:
+    enabled: true
+    name: loki-service
+    type: ClusterIP
+    port: 3100
+    targetPort: 3100
+
+  grafana:
+    enabled: false
+    name: grafana-service
+    type: ClusterIP
+    port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: example1.local.com
+      serviceName: goApi
+      servicePort: 80
+    - host: grafana.local.com
+      serviceName: grafana
+      servicePort: 3000
+
+databases:
+  enabled: false
+
+serviceAccount:
+    create: false
+
+    

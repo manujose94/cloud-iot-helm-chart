@@ -1,0 +1,15 @@
+apiVersion: v2
+name: cloud-iot-chart
+description: A Helm chart for the Cloud IoT project
+version: 0.1.0
+dependencies:
+  - name: application
+    version: 0.1.0
+    repository: file://charts/applications
+  - name: monitoring
+    version: 0.1.0
+    repository: file://charts/monitoring
+  - name: database
+    version: 0.1.0
+    repository: file://charts/database
+    condition: database.enabled

@@ -1,0 +1,13 @@
+{{- include "checkRequiredGlobalLabels" . }}
+{{- if .Values.services.goApi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.services.goApi.name }}
+spec:
+  type: {{ .Values.services.goApi.type }}
+  ports:
+    - port: {{ .Values.services.goApi.port }}
+  selector:
+    app: {{ .Release.Name }}
+{{- end }}

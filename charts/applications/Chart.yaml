@@ -1,0 +1,4 @@
+apiVersion: v2
+name: application
+description: A sub-chart for application components
+version: 0.1.0

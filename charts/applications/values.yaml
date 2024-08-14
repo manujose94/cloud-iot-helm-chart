@@ -1,0 +1,67 @@
+defaultResources: &defaultResources
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+deployments:
+  defaultReplicas: 1
+  imagePullPolicy: IfNotPresent
+
+  goApi:
+    enabled: true
+    replicas: 1
+    image: mamarbao/go-api:1.7.0
+    sidecarImage: fluent/fluent-bit:2.0.0
+    resources: *defaultResources
+
+  goSimulator:
+    enabled: true
+    replicas: 1
+    image: mamarbao/go-simulator:1.0.0
+    sidecarImage: fluent/fluent-bit:2.0.0
+    resources: *defaultResources
+
+  iotK8sOperator:
+    enabled: false
+    replicas: 1
+    image: ghcr.io/manujose94/iot-k8s-operator:1.1.0
+    resources: {}
+
+  loki:
+    enabled: true
+    replicas: 1
+    image: grafana/loki:latest
+
+  grafana:
+    enabled: true
+    replicas: 1
+    image: grafana/grafana:latest
+
+configmaps:
+  goApi:
+    enabled: true
+    data:
+      TEST_PROPUSE: "true"
+
+  fluentBit:
+    enabled: true
+
+  goSimulator:
+    enabled: true
+    data:
+      LATENCY: "5"
+      MAX_RETRY_CONNECT: "8"
+      RETRY_DELAY_CONNECT: "30"
+
+  fluentBitSimulator:
+    enabled: true
+    
+services:
+  goApi:
+    enabled: true
+    name: go-api-service
+    type: ClusterIP
+    port: 80

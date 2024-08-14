@@ -1,0 +1,31 @@
+{{- if .Values.services.grafana.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.services.grafana.name }}
+  labels:
+    {{- include "monitoring-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.services.grafana.type }}
+  ports:
+    - port: {{ .Values.services.grafana.port }}
+  selector:
+    app: {{ .Release.Name }}
+{{- end }}
+
+
+{{- if .Values.services.loki.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-loki
+  labels:
+    {{- include "monitoring-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.services.loki.type }}
+  ports:
+    - port: {{ .Values.services.loki.port }}
+      targetPort: {{ .Values.services.loki.targetPort }}
+  selector:
+    app: loki
+{{- end }}

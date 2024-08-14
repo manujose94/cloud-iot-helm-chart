@@ -1,0 +1,5 @@
+#charts/database/Chart.yaml
+apiVersion: v2
+name: database
+description: A sub-chart for database components like PostgreSQL and Redis
+version: 0.1.0

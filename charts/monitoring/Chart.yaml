@@ -1,0 +1,4 @@
+apiVersion: v2
+name: monitoring
+description: A sub-chart for monitoring components like Grafana and Loki
+version: 0.1.0

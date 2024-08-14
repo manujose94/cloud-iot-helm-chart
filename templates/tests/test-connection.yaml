@@ -1,0 +1,56 @@
+{{- if .Values.services.goApi.enabled }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "..fullname" . }}-goapi-test-connection"
+  labels:
+    {{- include "..labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ .Values.services.goApi.name }}:{{ .Values.services.goApi.port }}']
+  restartPolicy: Never
+{{- end }}
+
+{{- if .Values.services.loki.enabled }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "..fullname" . }}-loki-test-connection"
+  labels:
+    {{- include "..labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ .Values.services.loki.name }}:{{ .Values.services.loki.port }}']
+  restartPolicy: Never
+{{- end }}
+
+{{- if .Values.services.grafana.enabled }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "..fullname" . }}-grafana-test-connection"
+  labels:
+    {{- include "..labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ .Values.services.grafana.name }}:{{ .Values.services.grafana.port }}']
+  restartPolicy: Never
+{{- end }}

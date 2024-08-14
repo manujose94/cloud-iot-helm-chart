@@ -1,0 +1,63 @@
+{{- if .Values.databases.postgres.enabled }}
+
+# PostgreSQL ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cloud-iot-chart.fullname" . }}-postgres-config
+  labels:
+    {{- include "database-chart.labels" . | nindent 4 }}
+data:
+  DB_HOST: {{ .Values.databases.postgres.configMap.DB_HOST }}
+  DB_PORT: {{ .Values.databases.postgres.configMap.DB_PORT }}
+  DB_TIMEZONE: {{ .Values.databases.postgres.configMap.DB_TIMEZONE }}
+
+---
+
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-iot-chart.fullname" . }}-postgres
+  labels:
+    {{- include "database-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.databases.postgres.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "cloud-iot-chart.name" . }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-iot-chart.name" . }}-postgres
+        {{- include "database-chart.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.databases.postgres.image }}
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: {{ include "cloud-iot-chart.fullname" . }}-postgres-config
+            - secretRef:
+                name: {{ include "cloud-iot-chart.fullname" . }}-postgres-secret
+
+---
+
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-iot-chart.fullname" . }}-postgres
+  labels:
+    {{- include "database-chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ include "cloud-iot-chart.name" . }}-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+
+{{- end }}

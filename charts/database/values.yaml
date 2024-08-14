@@ -1,0 +1,26 @@
+# database/values.yaml
+databases:
+  enabled: true
+  postgres:
+    enabled: true
+    image: mamarbao/postgres:2.0
+    replicas: 1
+    configMap:
+      DB_HOST: postgres-service
+      DB_PORT: "5432"
+      DB_TIMEZONE: "Europe/Madrid"
+    secretName: postgres-secret
+
+  redis:
+    enabled: true
+    image: redis
+    replicas: 1
+    configMap:
+      REDIS_HOST: redis-service
+      REDIS_PORT: "6379"
+
+secrets:
+  postgres:
+    user: "mamarbao"
+    password: "m4n56l.uc5"
+    database: "uc_5"

@@ -1,0 +1,70 @@
+global:
+  imagePullPolicy: IfNotPresent
+  labels:
+    project: cloud-iot
+    version: "1.0.0"
+
+deployments:
+  defaultReplicas: 1
+  imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+
+  goApi:
+    enabled: true
+    replicas: 1
+    resources: {}
+
+  goSimulator:
+    enabled: true
+    replicas: 1
+    resources: {}
+
+  iotK8sOperator:
+    enabled: false
+    resources: {}
+
+  loki:
+    enabled: true
+
+  grafana:
+    enabled: false
+
+services:
+  goApi:
+    enabled: true
+    name: go-api-service
+    type: ClusterIP
+    port: 80
+
+  grafana:
+    enabled: false
+    name: grafana-service
+    type: ClusterIP
+    port: 3000
+
+  loki:
+    enabled: false
+    name: loki-service
+    type: ClusterIP
+    port: 3100
+    targetPort: 3100
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: example1.local.com
+      serviceName: goApi
+      servicePort: 80
+    - host: grafana.local.com
+      serviceName: grafana
+      servicePort: 3000
+
+# resources: {}
+
+database:
+  enabled: false
+
+serviceAccount:
+    create: false

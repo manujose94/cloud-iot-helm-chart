@@ -1,0 +1,57 @@
+{{- if .Values.databases.postgres.enabled }}
+
+# Redis ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cloud-iot-chart.fullname" . }}-redis-config
+  labels:
+    {{- include "redis-chart.labels" . | nindent 4 }}
+data:
+  REDIS_HOST: {{ .Values.databases.postgres.configMap.REDIS_HOST }}
+  REDIS_PORT: {{ .Values.databases.postgres.configMap.REDIS_PORT }}
+
+---
+
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-iot-chart.fullname" . }}-redis
+  labels:
+    {{- include "redis-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.databases.postgres.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "cloud-iot-chart.name" . }}-redis
+  template:
+    metadata:
+      labels:
+        app: {{ include "cloud-iot-chart.name" . }}-redis
+        {{- include "redis-chart.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.databases.postgres.image }}
+          ports:
+            - containerPort: 6379
+
+---
+
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-iot-chart.fullname" . }}-redis
+  labels:
+    {{- include "redis-chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ include "cloud-iot-chart.name" . }}-redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+
+{{- end }}

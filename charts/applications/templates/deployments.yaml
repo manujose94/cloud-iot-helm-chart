@@ -1,0 +1,180 @@
+{{- include "checkRequiredGlobalLabels" . }}
+
+{{- if .Values.deployments.goApi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-go-api
+  labels:
+    app: go-api
+    project: cloud-iot
+spec:
+  replicas: {{ .Values.deployments.goApi.replicas }}
+  selector:
+    matchLabels:
+      app: go-api
+  template:
+    metadata:
+      labels:
+        app: go-api
+        {{- include "applications-chart.labels" . | nindent 4 }}
+    spec:
+      containers:
+        - name: go-api
+          image: {{ .Values.deployments.goApi.image }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-go-api-config
+          volumeMounts:
+            - name: logs-volume
+              mountPath: /tmp/logs/go-api
+          {{- if .Values.deployments.goApi.resources }}
+          resources:
+            {{- if .Values.deployments.goApi.resources.requests }}
+            requests:
+              {{- if .Values.deployments.goApi.resources.requests.cpu }}
+              cpu: {{ .Values.deployments.goApi.resources.requests.cpu }}
+              {{- end }}
+              {{- if .Values.deployments.goApi.resources.requests.memory }}
+              memory: {{ .Values.deployments.goApi.resources.requests.memory }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.deployments.goApi.resources.limits }}
+            limits:
+              {{- if .Values.deployments.goApi.resources.limits.cpu }}
+              cpu: {{ .Values.deployments.goApi.resources.limits.cpu }}
+              {{- end }}
+              {{- if .Values.deployments.goApi.resources.limits.memory }}
+              memory: {{ .Values.deployments.goApi.resources.limits.memory }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        - name: sidecar-fluent-bit
+          image: {{ .Values.deployments.goApi.sidecarImage }}
+          volumeMounts:
+            - name: logs-volume
+              mountPath: /var/log/go-api
+            - name: config-volume
+              mountPath: /fluent-bit/etc/
+      volumes:
+        - name: logs-volume
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-fluent-bit-config
+{{- end }}
+
+{{- if .Values.deployments.goSimulator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-go-simulator
+  labels:
+    app: go-simulator
+    project: cloud-iot
+    type: iot-device
+    use: simulator
+spec:
+  replicas: {{ .Values.deployments.goSimulator.replicas }}
+  selector:
+    matchLabels:
+      app: go-simulator
+  template:
+    metadata:
+      labels:
+        app: go-simulator
+        type: iot-device
+        use: simulator
+        {{- include "applications-chart.labels" . | nindent 4 }}
+    spec:
+      containers:
+        - name: go-simulator
+          image: {{ .Values.deployments.goSimulator.image }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-go-simulator-config
+          volumeMounts:
+            - name: logs-volume
+              mountPath: /tmp/logs/go-simulator
+          {{- if .Values.deployments.goSimulator.resources }}
+          resources:
+            {{- if .Values.deployments.goSimulator.resources.requests }}
+            requests:
+              {{- if .Values.deployments.goSimulator.resources.requests.cpu }}
+              cpu: {{ .Values.deployments.goSimulator.resources.requests.cpu }}
+              {{- end }}
+              {{- if .Values.deployments.goSimulator.resources.requests.memory }}
+              memory: {{ .Values.deployments.goSimulator.resources.requests.memory }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.deployments.goSimulator.resources.limits }}
+            limits:
+              {{- if .Values.deployments.goSimulator.resources.limits.cpu }}
+              cpu: {{ .Values.deployments.goSimulator.resources.limits.cpu }}
+              {{- end }}
+              {{- if .Values.deployments.goSimulator.resources.limits.memory }}
+              memory: {{ .Values.deployments.goSimulator.resources.limits.memory }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        - name: sidecar-fluent-bit
+          image: {{ .Values.deployments.goSimulator.sidecarImage }}
+          volumeMounts:
+            - name: logs-volume
+              mountPath: /var/log/go-simulator
+            - name: config-volume
+              mountPath: /fluent-bit/etc/
+      volumes:
+        - name: logs-volume
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-fluent-bit-go-simulator-config
+{{- end }}
+
+{{- if .Values.deployments.iotK8sOperator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-iot-k8s-operator
+  labels:
+    app: iot-k8s-operator
+    {{- include "applications-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployments.iotK8sOperator.replicas }}
+  selector:
+    matchLabels:
+      app: iot-k8s-operator
+      project: cloud-iot
+  template:
+    metadata:
+      labels:
+        app: iot-k8s-operator
+        version: "1.1.0"
+        project: cloud-iot
+    spec:
+      containers:
+        - name: iot-k8s-operator
+          image: {{ .Values.deployments.iotK8sOperator.image }}
+          {{- if .Values.deployments.iotK8sOperator.resources }}
+          resources:
+            {{- if .Values.deployments.iotK8sOperator.resources.requests }}
+            requests:
+              {{- if .Values.deployments.iotK8sOperator.resources.requests.cpu }}
+              cpu: {{ .Values.deployments.iotK8sOperator.resources.requests.cpu }}
+              {{- end }}
+              {{- if .Values.deployments.iotK8sOperator.resources.requests.memory }}
+              memory: {{ .Values.deployments.iotK8sOperator.resources.requests.memory }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.deployments.iotK8sOperator.resources.limits }}
+            limits:
+              {{- if .Values.deployments.iotK8sOperator.resources.limits.cpu }}
+              cpu: {{ .Values.deployments.iotK8sOperator.resources.limits.cpu }}
+              {{- end }}
+              {{- if .Values.deployments.iotK8sOperator.resources.limits.memory }}
+              memory: {{ .Values.deployments.iotK8sOperator.resources.limits.memory }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+{{- end }}

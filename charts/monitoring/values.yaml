@@ -1,0 +1,33 @@
+labels:
+  name: monitoring
+
+deployments:
+  loki:
+    enabled: true                # Enable Loki deployment
+    replicas: 1                  # Number of Loki replicas
+    image: grafana/loki:latest   # Loki image
+
+  grafana:
+    enabled: true                # Enable Grafana deployment
+    replicas: 1                  # Number of Grafana replicas
+    image: grafana/grafana:latest # Grafana image
+
+services:
+  loki:
+    enabled: true               # Enable Loki service
+    name: loki-service           # Loki service name
+    type: ClusterIP              # Service type (ClusterIP, NodePort, LoadBalancer)
+    port: 3100                   # Service port
+    targetPort: 3100             # Target port for Loki
+
+  grafana:
+    enabled: true               # Enable Grafana service
+    name: grafana-service        # Grafana service name
+    type: ClusterIP              # Service type (ClusterIP, NodePort, LoadBalancer)
+    port: 3000                   # Service port
+
+global:
+  imagePullPolicy: IfNotPresent  # Global image pull policy
+  labels:
+    project: cloud-iot           # Project label
+    version: "1.0.0"             # Version label

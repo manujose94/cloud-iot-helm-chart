@@ -1,0 +1,54 @@
+{{- $projectLabel := required "The global label 'project' is required" .Values.global.labels.project -}}
+{{- $versionLabel := required "The global label 'version' is required" .Values.global.labels.version -}}
+
+{{- if .Values.deployments.loki.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-loki
+  labels:
+    {{- include "monitoring-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployments.loki.replicas }}
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+        {{- include "monitoring-chart.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: loki
+          image: {{ .Values.deployments.loki.image }}
+          ports:
+            - containerPort: 3100
+{{- end }}
+
+
+{{- if .Values.deployments.grafana.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-grafana
+  labels:
+    {{- include "monitoring-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployments.grafana.replicas }}
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+        {{- include "monitoring-chart.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: grafana
+          image: {{ .Values.deployments.grafana.image }}
+          ports:
+            - containerPort: 3000
+{{- end }}
+

@@ -16,50 +16,45 @@ jobs:
     
     strategy:
       matrix:
-        values-file: ['values.yaml', 'values-dev.yaml','values-test.yaml']
+        chart-path: ['charts/applications', 'charts/database', 'charts/monitoring']
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.7
 
       - name: Set up Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v4.2.0
         with:
           version: v3.10.2
           
       - name: Cache Helm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v4.0.2
         with:
           path: ~/.cache/helm
           key: ${{ runner.os }}-helm-${{ hashFiles('**/Chart.yaml') }}
           restore-keys: |
             ${{ runner.os }}-helm-
 
-      - name: Build dependencies
-        run: helm dependency build ./charts
+      - name: Build dependencies for ${{ matrix.chart-path }}
+        run: helm dependency build ${{ matrix.chart-path }}
 
-      - name: Lint Helm Chart
-        id: default_chart
-        run: helm lint .
-        
-      - name: Lint Helm Chart with Root Values
-        if: success()
-        run: helm lint ./chars -f ./values.yaml     
+      - name: Lint ${{ matrix.chart-path }} with values file
+        run: helm lint ${{ matrix.chart-path }} -f ${{ matrix.chart-path }}/values.yaml    
 
   template:
     name: Verify Helm Template Rendering
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.7
 
       - name: Set up Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v4.2.0
         with:
           version: v3.10.2
 
-      - name: Run Helm Template
-        run: helm template ./charts --debug
+      - name: Run Helm Template on Main Chart
+        run: helm template . --debug
 
   manual-test:
     name: Manual Test Helm Chart in Kind Cluster

@@ -1,6 +1,7 @@
 name: Helm Chart CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,6 +13,10 @@ jobs:
   lint:
     name: Lint Helm Chart
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        values-file: ['values.yaml', 'values-dev.yaml','values-test.yaml']
 
     steps:
       - name: Checkout code
@@ -21,14 +26,29 @@ jobs:
         uses: azure/setup-helm@v1
         with:
           version: v3.10.2
+          
+      - name: Cache Helm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/helm
+          key: ${{ runner.os }}-helm-${{ hashFiles('**/Chart.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-helm-
+
+      - name: Build dependencies
+        run: helm dependency build ./charts
 
       - name: Lint Helm Chart
-        run: helm lint ./cloud-iot-chart
+        id: default_chart
+        run: helm lint .
+        
+      - name: Lint Helm Chart with Root Values
+        if: success()
+        run: helm lint ./chars -f ./values.yaml     
 
   template:
     name: Verify Helm Template Rendering
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -39,7 +59,7 @@ jobs:
           version: v3.10.2
 
       - name: Run Helm Template
-        run: helm template ./cloud-iot-chart --debug
+        run: helm template ./charts --debug
 
   manual-test:
     name: Manual Test Helm Chart in Kind Cluster

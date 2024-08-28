@@ -8,15 +8,24 @@ Expand the name of the chart.
 {{- define "checkRequiredGlobalLabels" -}}
 {{- $projectLabel := required "The global label 'project' is required" .Values.global.labels.project -}}
 {{- $versionLabel := required "The global label 'version' is required" .Values.global.labels.version -}}
-{{- printf "project=%s, version=%s" $projectLabel $versionLabel | quote -}}
+# {{- printf " project=%s, version=%s" $projectLabel $versionLabel -}}
 {{- end -}}
 
 {{/*
   Create global project labels that can be reused across templates
 */}}
 {{- define "root-chart.project-labels" -}}
+release: {{ .Release.Name }}
+
+{{- if not (and .Values.global .Values.global.labels.project) }}
+    {{- fail "The global configuration 'global' and label 'project' are required and missing" -}}
+{{- else }}
+{{- if hasKey .Template "root-chart.project-labels" }}
+{{- include "root-chart.project-labels" . | nindent 2 }}
+{{- else }}
 project: {{ .Values.global.labels.project }}
-version: {{ .Values.global.labels.version }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{/*

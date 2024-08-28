@@ -1,45 +1,83 @@
+defaultResources: &defaultResources
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+
 global:
   imagePullPolicy: IfNotPresent
   labels:
     project: cloud-iot
     version: "1.0.0"
 
+
 deployments:
   defaultReplicas: 1
-  imagePullPolicy: {{ .Values.global.imagePullPolicy }}
 
   goApi:
     enabled: true
     replicas: 1
+    image: mamarbao/go-api:1.7.0
+    sidecarImage: fluent/fluent-bit:2.0.0
+    resources: *defaultResources    
 
   goSimulator:
     enabled: true
     replicas: 1
+    image: mamarbao/go-simulator:1.0.0
+    sidecarImage: fluent/fluent-bit:2.0.0
+    resources: *defaultResources
 
   iotK8sOperator:
     enabled: false
+    replicas: 1
+    image: ghcr.io/manujose94/iot-k8s-operator:1.1.0
+    resources: {}
 
   loki:
     enabled: true
+    replicas: 1
+    image: grafana/loki:latest
 
   grafana:
-    enabled: false
+    enabled: true
+    replicas: 1
+    image: grafana/grafana:latest
     
-postgres:
+databases:
   enabled: true
-  image: mamarbao/postgres:2.0
-  replicas: 1
-  secret:
+  postgres:
+    enabled: true
+    image: mamarbao/postgres:2.0
+    replicas: 1
+    configMap:
+      DB_HOST: postgres-service
+      DB_PORT: "5432"
+      DB_TIMEZONE: "Europe/Madrid"
+
+  redis:
+    enabled: true
+    image: redis
+    replicas: 1
+    configMap:
+      REDIS_HOST: redis-service
+      REDIS_PORT: "6379"
+
+secrets:
+  postgres:
     user: "mamarbao"
     password: "m4n56l.uc5"
     database: "uc_5"
-
+  
 configmaps:
   goApi:
     enabled: true
     resources: {}
     data:
-      TEST_PROPUSE: "true"
+      TEST_PROPUSE: "false"
 
   fluentBit:
     enabled: true

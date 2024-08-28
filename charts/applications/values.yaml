@@ -6,6 +6,12 @@ defaultResources: &defaultResources
     memory: "128Mi"
     cpu: "500m"
 
+global:
+  imagePullPolicy: IfNotPresent
+  labels:
+    project: cloud-iot
+    version: "1.0.0"
+
 deployments:
   defaultReplicas: 1
   imagePullPolicy: IfNotPresent
@@ -58,7 +64,14 @@ configmaps:
 
   fluentBitSimulator:
     enabled: true
-    
+
+databases:
+  postgres:
+    enabled: false
+
+  redis:
+    enabled: false
+
 services:
   goApi:
     enabled: true

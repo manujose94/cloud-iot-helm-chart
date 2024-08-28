@@ -11,12 +11,12 @@ on:
 
 jobs:
   lint:
-    name: Lint Helm Chart
+    name: Lint Helm Charts Applications Database and monitoring
     runs-on: ubuntu-latest
     
     strategy:
       matrix:
-        chart-path: ['charts/applications', 'charts/database', 'charts/monitoring']
+        chart-path: [ 'charts/applications' , 'charts/database', 'charts/monitoring']
 
     steps:
       - name: Checkout code

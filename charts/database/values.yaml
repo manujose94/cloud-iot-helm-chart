@@ -1,3 +1,9 @@
+global:
+  imagePullPolicy: IfNotPresent
+  labels:
+    project: cloud-iot
+    version: "1.0.0"
+    
 # database/values.yaml
 databases:
   enabled: true
@@ -9,7 +15,6 @@ databases:
       DB_HOST: postgres-service
       DB_PORT: "5432"
       DB_TIMEZONE: "Europe/Madrid"
-    secretName: postgres-secret
 
   redis:
     enabled: true

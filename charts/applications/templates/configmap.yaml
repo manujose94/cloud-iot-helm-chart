@@ -1,4 +1,8 @@
-{{- include "checkRequiredGlobalLabels" . }}
+{{- if and .Values.global .Values.global.labels }}
+  {{- include "checkRequiredGlobalLabels" . }}
+{{- else }}
+  {{- fail "The global configuration 'global' or 'global.labels' is missing" -}}
+{{- end }}
 
 {{- if .Values.configmaps.goApi.enabled }}
 apiVersion: v1
@@ -6,7 +10,10 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-go-api-config
 data:
-  TEST_PROPUSE: {{ .Values.configmaps.goApi.data.TEST_PROPUSE | quote }}
+{{- range $key, $value := .Values.configmaps.goApi.data }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}
+---
 {{- end }}
 
 {{- if .Values.configmaps.fluentBit.enabled }}
@@ -69,6 +76,7 @@ data:
         Regex       /^(?<time>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}\.\d{,9})/
         Time_Key    time
         Time_Format %Y-%m-%d %H:%M:%S.%L
+---
 {{- end }}
 
 {{- if .Values.configmaps.goSimulator.enabled }}
@@ -80,6 +88,7 @@ data:
   LATENCY: {{ .Values.configmaps.goSimulator.data.LATENCY | quote }}
   MAX_RETRY_CONNECT: {{ .Values.configmaps.goSimulator.data.MAX_RETRY_CONNECT | quote }}
   RETRY_DELAY_CONNECT: {{ .Values.configmaps.goSimulator.data.RETRY_DELAY_CONNECT | quote }}
+---
 {{- end }}
 
 {{- if .Values.configmaps.fluentBitSimulator.enabled }}

@@ -1,3 +1,9 @@
+{{- if and .Values.global .Values.global.labels }}
+  {{- include "checkRequiredGlobalLabels" . }}
+{{- else }}
+  {{- fail "The global configuration 'global' or 'global.labels' is missing" -}}
+{{- end }}
+
 {{- if .Values.databases.postgres.enabled }}
 
 # PostgreSQL ConfigMap
@@ -8,9 +14,9 @@ metadata:
   labels:
     {{- include "database-chart.labels" . | nindent 4 }}
 data:
-  DB_HOST: {{ .Values.databases.postgres.configMap.DB_HOST }}
-  DB_PORT: {{ .Values.databases.postgres.configMap.DB_PORT }}
-  DB_TIMEZONE: {{ .Values.databases.postgres.configMap.DB_TIMEZONE }}
+  DB_HOST: {{ .Values.databases.postgres.configMap.DB_HOST | quote }}
+  DB_PORT: {{ .Values.databases.postgres.configMap.DB_PORT | quote }}
+  DB_TIMEZONE: {{ .Values.databases.postgres.configMap.DB_TIMEZONE | quote }}
 
 ---
 
@@ -25,12 +31,13 @@ spec:
   replicas: {{ .Values.databases.postgres.replicas }}
   selector:
     matchLabels:
-      app: {{ include "cloud-iot-chart.name" . }}-postgres
+      app: {{ include "cloud-iot-chart.name" . }}-postgres  # Ensure this matches template labels
   template:
     metadata:
       labels:
-        app: {{ include "cloud-iot-chart.name" . }}-postgres
-        {{- include "database-chart.labels" . | nindent 8 }}
+        app: {{ include "cloud-iot-chart.name" . }}-postgres  # Ensure consistency with selector
+        release: {{ .Release.Name }}
+        project: {{ default "default-project" .Values.global.labels.project }}
     spec:
       containers:
         - name: postgres
@@ -54,7 +61,7 @@ metadata:
     {{- include "database-chart.labels" . | nindent 4 }}
 spec:
   selector:
-    app: {{ include "cloud-iot-chart.name" . }}-postgres
+    app: {{ include "cloud-iot-chart.name" . }}-postgres  # Consistency with Deployment
   ports:
     - protocol: TCP
       port: 5432

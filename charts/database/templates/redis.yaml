@@ -1,4 +1,4 @@
-{{- if .Values.databases.postgres.enabled }}
+{{- if .Values.databases.redis.enabled }}
 
 # Redis ConfigMap
 apiVersion: v1
@@ -8,8 +8,8 @@ metadata:
   labels:
     {{- include "redis-chart.labels" . | nindent 4 }}
 data:
-  REDIS_HOST: {{ .Values.databases.postgres.configMap.REDIS_HOST }}
-  REDIS_PORT: {{ .Values.databases.postgres.configMap.REDIS_PORT }}
+  REDIS_HOST: {{ .Values.databases.redis.configMap.REDIS_HOST }}
+  REDIS_PORT: {{ .Values.databases.redis.configMap.REDIS_PORT }}
 
 ---
 
@@ -21,19 +21,18 @@ metadata:
   labels:
     {{- include "redis-chart.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.databases.postgres.replicas }}
+  replicas: {{ .Values.databases.redis.replicas }}
   selector:
     matchLabels:
       app: {{ include "cloud-iot-chart.name" . }}-redis
   template:
     metadata:
       labels:
-        app: {{ include "cloud-iot-chart.name" . }}-redis
         {{- include "redis-chart.labels" . | nindent 8 }}
     spec:
       containers:
         - name: redis
-          image: {{ .Values.databases.postgres.image }}
+          image: {{ .Values.databases.redis.image }}
           ports:
             - containerPort: 6379
 

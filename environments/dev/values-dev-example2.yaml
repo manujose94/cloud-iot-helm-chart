@@ -1,0 +1,143 @@
+global:
+  imagePullPolicy: IfNotPresent
+  labels:
+    project: cloud-iot
+    version: "1.0.0"
+
+deployments:
+  defaultReplicas: 1
+  imagePullPolicy: IfNotPresent
+
+  goApi:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+
+  goSimulator:
+    enabled: true  # Enable for testing purposes
+    replicas: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+
+  iotK8sOperator:
+    enabled: true  # Enable for testing purposes
+    replicas: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+
+  loki:
+    enabled: true
+
+  grafana:
+    enabled: true  # Enable for testing purposes
+
+postgres:
+  enabled: true  # Enable for testing purposes
+  image: mamarbao/postgres:2.0
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+  secret:
+    user: "mamarbao"
+    password: "m4n56l.uc5"
+    database: "uc_5"
+    replicas: 1
+    configMap:
+      DB_HOST: postgres-service
+      DB_PORT: "5432"
+      DB_TIMEZONE: "Europe/Madrid"
+    secretName: postgres-secret
+
+  redis:
+    enabled: true
+    image: redis
+    replicas: 1
+    configMap:
+      REDIS_HOST: redis-service
+      REDIS_PORT: "6379"
+
+secrets:
+  postgres:
+    secretName: postgres-secret
+    user: "mamarbao"
+    password: "m4n56l.uc5"
+    database: "uc_5"
+    
+configmaps:
+  goApi:
+    enabled: true
+    data:
+      TEST_PROPUSE: "false"
+
+  fluentBit:
+    enabled: true
+
+  goSimulator:
+    enabled: true  # Enable for testing purposes
+    data:
+      LATENCY: "5"
+      MAX_RETRY_CONNECT: "8"
+      RETRY_DELAY_CONNECT: "30"
+
+  fluentBitSimulator:
+    enabled: true
+
+services:
+  goApi:
+    enabled: true
+    name: go-api-service
+    type: ClusterIP
+    port: 80
+
+  loki:
+    enabled: true
+    name: loki-service
+    type: ClusterIP
+    port: 3100
+    targetPort: 3100
+
+  grafana:
+    enabled: true  # Enable for testing purposes
+    name: grafana-service
+    type: ClusterIP
+    port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: example1.local.com
+      serviceName: goApi
+      servicePort: 80
+    - host: grafana.local.com
+      serviceName: grafana
+      servicePort: 3000
+
+databases:
+  enabled: true  # Enable for testing purposes
+
+serviceAccount:
+  create: false

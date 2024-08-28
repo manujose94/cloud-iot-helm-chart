@@ -1,4 +1,8 @@
-{{- include "checkRequiredGlobalLabels" . }}
+{{- if and .Values.global .Values.global.labels }}
+  {{- include "checkRequiredGlobalLabels" . }}
+{{- else }}
+  {{- fail "The global configuration 'global' or 'global.labels' is missing" -}}
+{{- end }}
 
 {{- if .Values.deployments.goApi.enabled }}
 apiVersion: apps/v1
@@ -22,9 +26,53 @@ spec:
       containers:
         - name: go-api
           image: {{ .Values.deployments.goApi.image }}
-          envFrom:
-            - configMapRef:
-                name: {{ .Release.Name }}-go-api-config
+          env:
+            {{- if .Values.databases.redis.enabled }}
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-redis-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-redis-config
+                  key: REDIS_PORT
+            {{- end }}
+            {{- if .Values.databases.postgres.enabled }}
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-postgres-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-postgres-config
+                  key: DB_PORT
+            - name: DB_TIMEZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-postgres-config
+                  key: DB_TIMEZONE
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-secret
+                  key: POSTGRES_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-secret
+                  key: POSTGRES_DB
+            {{- end }}
+            - name: DEBUG_MODE
+              value: "true"
           volumeMounts:
             - name: logs-volume
               mountPath: /tmp/logs/go-api
@@ -62,6 +110,7 @@ spec:
         - name: config-volume
           configMap:
             name: {{ .Release.Name }}-fluent-bit-config
+---
 {{- end }}
 
 {{- if .Values.deployments.goSimulator.enabled }}
@@ -130,6 +179,7 @@ spec:
         - name: config-volume
           configMap:
             name: {{ .Release.Name }}-fluent-bit-go-simulator-config
+---
 {{- end }}
 
 {{- if .Values.deployments.iotK8sOperator.enabled }}

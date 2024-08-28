@@ -1,4 +1,8 @@
-{{- include "checkRequiredGlobalLabels" . }}
+{{- if and .Values.global .Values.global.labels }}
+  {{- include "checkRequiredGlobalLabels" . }}
+{{- else }}
+  {{- fail "The global configuration 'global' or 'global.labels' is missing" -}}
+{{- end }}
 {{- if .Values.services.goApi.enabled }}
 apiVersion: v1
 kind: Service

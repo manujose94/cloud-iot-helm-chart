@@ -1,5 +1,3 @@
-Here is the updated `README.md` content with improvements in the structure, references, and additional icons to enhance readability:
-
 # :cloud: Cloud IoT Helm Chart
 
 ## :bookmark_tabs: Overview
@@ -7,7 +5,6 @@ Here is the updated `README.md` content with improvements in the structure, refe
 This Helm chart deploys a set of microservices for a Cloud IoT platform. It includes services like `goApi`, `loki`, and `grafana`, along with their corresponding configuration, deployment, and service resources.
 
 This Helm chart is an extension of the Cloud IoT microservices deployment found in the [cloud-iot-microservices-deployment](https://github.com/manujose94/cloud-iot-microservices-deployment) repository. It builds on the Kubernetes manifests provided in the [kubernetes](https://github.com/manujose94/cloud-iot-microservices-deployment/tree/main/kubernetes) directory of that project, offering a more streamlined, configurable, and reusable solution for deploying the platform's services.
-
 
 ## :scroll: Table of Contents
 
@@ -50,13 +47,13 @@ This Helm chart is an extension of the Cloud IoT microservices deployment found 
 You can install the Helm chart with the following command:
 
 ```bash
-helm install cloud-iot ./cloud-iot-chart
+helm install cloud-iot ./charts/applications
 ```
 
 Or, to upgrade an existing release:
 
 ```bash
-helm upgrade --install cloud-iot ./cloud-iot-chart
+helm upgrade --install cloud-iot ./charts/applications
 ```
 
 You can pass in custom values using the `--set` flag or by specifying additional values files with `-f`.
@@ -64,11 +61,21 @@ You can pass in custom values using the `--set` flag or by specifying additional
 For example:
 
 ```bash
-helm upgrade --install cloud-iot ./cloud-iot-chart \
+helm upgrade --install cloud-iot ./charts/applications \
   --set secrets.postgres.user=$POSTGRES_USER \
   --set secrets.postgres.password=$POSTGRES_PASSWORD \
   --set secrets.postgres.database=$POSTGRES_DB
 ```
+
+### Environment-Specific Installation
+
+For deploying in different environments like `dev`, `staging`, or `prod`, you should organize your values files within the `environments/` directory as follows:
+
+```bash
+helm upgrade --install cloud-iot ./charts/applications -f environments/dev/values.yaml
+```
+
+This allows you to maintain environment-specific configurations separately, ensuring cleaner and more manageable deployments.
 
 ## :gear: Configuration
 
@@ -79,6 +86,8 @@ helm upgrade --install cloud-iot ./cloud-iot-chart \
 | `global.imagePullPolicy`  | Image pull policy for all containers        | `IfNotPresent`|
 | `global.labels.project`   | Project label applied to all resources      | `cloud-iot`   |
 | `global.labels.version`   | Version label applied to all resources      | `1.0.0`       |
+
+**Note:** Environment-specific values are stored in separate files under the `environments/` directory. This structure allows you to maintain configurations for `dev`, `staging`, and `prod` environments separately, ensuring that sensitive or environment-specific configurations do not overlap.
 
 ### :package: Deployments
 
@@ -132,15 +141,30 @@ This section allows you to configure ingress resources for the deployed services
 
 This section allows you to configure database-related settings.
 
-| Key                                | Description                                                | Default               |
-| ---------------------------------- | ---------------------------------------------------------- | --------------------- |
-| `databases.enabled`                | Enable database-related deployments                        | `false`               |
-| `postgres.enabled`                 | Enable the PostgreSQL deployment                           | `true`                |
-| `postgres.image`                   | Image for the PostgreSQL deployment                        | `mamarbao/postgres:2.0`|
-| `postgres.replicas`                | Number of replicas for the PostgreSQL deployment           | `1`                   |
-| `postgres.secret.user`             | PostgreSQL user                                            | `mamarbao`            |
-| `postgres.secret.password`         | PostgreSQL password                                        | `m4n56l.uc5`          |
-| `postgres.secret.database`         | PostgreSQL database name                                   | `uc_5`                |
+| Key                                    | Description                                                | Default                  |
+| -------------------------------------- | ---------------------------------------------------------- | ------------------------ |
+| `databases.enabled`                    | Enable database-related deployments                        | `false`                  |
+| `databases.postgres.enabled`           | Enable the PostgreSQL deployment                           | `true`                   |
+| `databases.postgres.image`             | Image for the PostgreSQL deployment                        | `mamarbao/postgres:2.0`  |
+| `databases.postgres.replicas`          | Number of replicas for the PostgreSQL deployment           | `1`                      |
+| `databases.postgres.configMap.DB_HOST` | Hostname for the PostgreSQL service                        | `postgres-service`       |
+| `databases.postgres.configMap.DB_PORT` | Port number for the PostgreSQL service                     | `"5432"`                 |
+| `databases.postgres.configMap.DB_TIMEZONE` | Timezone for the PostgreSQL deployment                    | `"Europe/Madrid"`        |
+| `databases.redis.enabled`              | Enable the Redis deployment                                | `true`                   |
+| `databases.redis.image`                | Image for the Redis deployment                             | `redis`                  |
+| `databases.redis.replicas`             | Number of replicas for the Redis deployment                | `1`                      |
+| `databases.redis.configMap.REDIS_HOST` | Hostname for the Redis service                             | `redis-service`          |
+| `databases.redis.configMap.REDIS_PORT` | Port number for the Redis service                          | `"6379"`                 |
+
+#### :globe_with_meridians: Global Configuration Databse
+
+This section covers global settings that are checked and used across different parts of the chart, particularly in the label generation logic.
+
+| Key                                      | Description                                                | Default                  |
+| ---------------------------------------- | ---------------------------------------------------------- | ------------------------ |
+| `global.labels.project`                  | Project label to be applied to all resources               | Not set (optional)       |
+| `global.labels.version`                  | Version label to be applied to all resources               | Not set (required if `project` is set) |
+
 
 ### :key: Service Account
 
@@ -148,7 +172,9 @@ This section allows you to configure service account settings.
 
 | Key                                | Description                                                | Default               |
 | ---------------------------------- | ---------------------------------------------------------- | --------------------- |
-| `serviceAccount.create`            | Create a service account for the deployment                | `false`               |
+| `serviceAccount.create`            |
+
+ Create a service account for the deployment                | `false`               |
 
 ### :notebook: ConfigMaps
 
@@ -159,7 +185,7 @@ This section allows you to configure ConfigMaps used by the deployed services.
 | `configmaps.goApi.enabled`         | Enable the ConfigMap for `goApi`                           | `true`                |
 | `configmaps.goApi.data`            | Key-value pairs for the `goApi` ConfigMap                  | `{}`                  |
 | `configmaps.fluentBit.enabled`     | Enable the ConfigMap for `fluentBit`                       | `true`                |
-| `configmaps.goSimulator.enabled`   | Enable the ConfigMap for `goSimulator`                     | `true`                |
+| `configmaps.goSimulator.enabled`   | Enable the ConfigMap for `goSimulator`                     | `false`                |
 | `configmaps.goSimulator.data`      | Key-value pairs for the `goSimulator` ConfigMap            | `{}`                  |
 | `configmaps.fluentBitSimulator.enabled` | Enable the ConfigMap for `fluentBitSimulator`           | `true`                |
 
@@ -170,9 +196,7 @@ The chart includes a set of test connection Pods that are automatically created 
 To manually trigger the tests after deployment, use the following command:
 
 ```bash
-helm
-
- test cloud-iot
+helm test cloud-iot
 ```
 
 This command will run the tests for all services that are enabled in the `values.yaml` file.
@@ -217,8 +241,8 @@ Here is a comprehensive table of all possible values and their descriptions.
 ### :closed_lock_with_key: Example Deployment Command with Secure Secrets
 
 ```bash
-helm upgrade --install cloud-iot-chart ./cloud-iot-chart \
-  --values values-prod.yaml \
+helm upgrade --install cloud-iot ./charts/applications \
+  --values environments/prod/values.yaml \
   --set secrets.postgres.user=$POSTGRES_USER \
   --set secrets.postgres.password=$POSTGRES_PASSWORD \
   --set secrets.postgres.database=$POSTGRES_DB
@@ -231,7 +255,7 @@ helm upgrade --install cloud-iot-chart ./cloud-iot-chart \
 Helm provides a built-in linting tool to check your chart for common issues:
 
 ```bash
-helm lint
+helm lint ./charts/applications
 ```
 
 ### :scroll: Template Rendering
@@ -239,7 +263,10 @@ helm lint
 You can render your Helm templates locally to see what the final Kubernetes YAML manifests will look like:
 
 ```bash
-helm template my-chart/ --values my-values.yaml
+helm template cloud-iot ./charts/applications
+helm template charts/database --debug
+# Spec. Env
+helm template cloud-iot --values environments/dev/values.yaml
 ```
 
 ### :hourglass_flowing_sand: Dry Run
@@ -247,7 +274,7 @@ helm template my-chart/ --values my-values.yaml
 Perform a dry run to simulate an installation:
 
 ```bash
-helm install my-release my-chart/ --values my-values.yaml --dry-run --debug
+helm install cloud-iot ./charts/applications --values environments/dev/values.yaml --dry-run --debug
 ```
 
 ### :clipboard: Validate Kubernetes Manifests
@@ -255,7 +282,7 @@ helm install my-release my-chart/ --values my-values.yaml --dry-run --debug
 After rendering the templates with `helm template` or `helm install --dry-run`, you can pipe the output to `kubectl` to validate the resulting Kubernetes manifests:
 
 ```bash
-helm template my-chart/ --values my-values.yaml | kubectl apply --dry-run=client -f -
+helm template cloud-iot ./charts/applications --values environments/dev/values.yaml | kubectl apply --dry-run=client -f -
 ```
 
 ### :link: Verify Dependencies
@@ -263,7 +290,7 @@ helm template my-chart/ --values my-values.yaml | kubectl apply --dry-run=client
 Ensure that your chart's dependencies are up to date:
 
 ```bash
-helm dependency update my-chart/
+helm dependency update ./charts/applications
 ```
 
 ### :white_check_mark: Check YAML Syntax
@@ -271,7 +298,7 @@ helm dependency update my-chart/
 Use tools like `yamllint` to ensure that your YAML files are properly formatted:
 
 ```bash
-yamllint my-chart/
+yamllint ./charts/applications
 ```
 
 ### :heavy_check_mark: Unit Testing

@@ -35,7 +35,6 @@ deployments:
 
 
 databases:
-  enabled: true
   postgres:
     enabled: false
     image: mamarbao/postgres:2.0
@@ -75,7 +74,7 @@ services:
     targetPort: 3100
 
   grafana:
-    enabled: false  # Enable for testing purposes
+    enabled: true  # Enable for testing purposes
     name: grafana-service
     type: ClusterIP
     port: 3000
@@ -89,6 +88,9 @@ ingress:
     - host: example1.local.com
       serviceName: goApi
       servicePort: 80
+    - host: grafana.local.com
+      serviceName: grafana
+      servicePort: 3000
 
 databases:
   enabled: false  # Enable for testing purposes

@@ -1,0 +1,55 @@
+name: Chart Inspector
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  inspect-chart:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+
+      - name: Read Main Chart.yaml
+        id: read_chart
+        run: |
+          CHART_PATH="./Chart.yaml"
+          if [ ! -f "$CHART_PATH" ]; then
+            echo "chart.yaml not found!"
+            exit 1
+          fi
+          
+          # Read and parse chart.yaml
+          NAME=$(grep '^name:' $CHART_PATH | awk '{print $2}')
+          VERSION=$(grep '^version:' $CHART_PATH | awk '{print $2}')
+          DEPENDENCIES=$(grep -A3 '^dependencies:' $CHART_PATH | grep '^  - name:' | awk '{print $3}' | tr '\n' ',' | sed 's/,$//')
+          
+          echo "name=$NAME" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "dependencies=$DEPENDENCIES" >> $GITHUB_ENV
+
+          # Output for summary
+          echo "Chart Name: $NAME"
+          echo "Chart Version: $VERSION"
+          echo "Dependencies: $DEPENDENCIES"
+        
+      - name: Output Summary
+        run: |
+          echo "## Chart Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Name:** ${{ env.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ env.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dependencies:** ${{ env.dependencies }}" >> $GITHUB_STEP_SUMMARY
+
+      # Use the environment variables in subsequent steps
+      - name: Use Chart Information in another step
+        run: |
+          echo "Using chart name: ${{ env.name }}"
+          echo "Using chart version: ${{ env.version }}"
+          echo "Using chart dependencies: ${{ env.dependencies }}"

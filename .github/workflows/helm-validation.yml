@@ -17,63 +17,62 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.1.7
 
-
-    - name: Install Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-    - name: Lint Helm Files
-      run: |
-        mkdir -p lint-logs
-        echo "### Helm Lint Results" >> $GITHUB_STEP_SUMMARY
-        for file in $(find ./environments/ -name '*.yaml'); do
-          echo "Linting $file"
-          helm lint charts/* -f $file --namespace $(basename $(dirname $file)) > lint-logs/$(basename $file).log 2>&1
-          if [ $? -ne 0 ]; then
-            echo "::error file=$file::Helm lint failed for $file"
-            echo "- ❌ $file: Failed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ✅ $file: Passed" >> $GITHUB_STEP_SUMMARY
-          fi
-        done
-
-    - name: Upload Lint Logs
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: lint-logs
-        path: lint-logs
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  
+      - name: Lint Helm Files
+        run: |
+          mkdir -p lint-logs
+          echo "### Helm Lint Results" >> $GITHUB_STEP_SUMMARY
+          for file in $(find ./environments/ -name '*.yaml'); do
+            echo "Linting $file"
+            helm lint charts/* -f $file --namespace $(basename $(dirname $file)) > lint-logs/$(basename $file).log 2>&1
+            if [ $? -ne 0 ]; then
+              echo "::error file=$file::Helm lint failed for $file"
+              echo "- ❌ $file: Failed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ $file: Passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+  
+      - name: Upload Lint Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-logs
+          path: lint-logs
 
   template:
     runs-on: ubuntu-latest
     needs: lint
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4.1.7
-
-    - name: Install Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-    - name: Template Helm Files
-      run: |
-        mkdir -p template-logs
-        echo "### Helm Template Results" >> $GITHUB_STEP_SUMMARY
-        for file in $(find ./environments/ -name '*.yaml'); do
-          echo "Templating $file"
-          helm template charts/* -f $file --namespace $(basename $(dirname $file)) > template-logs/$(basename $file).log 2>&1
-          if [ $? -ne 0 ]; then
-            echo "::error file=$file::Helm template failed for $file"
-            echo "- ❌ $file: Failed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ✅ $file: Passed" >> $GITHUB_STEP_SUMMARY
-          fi
-        done
-
-    - name: Upload Template Logs
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: template-logs
-        path: template-logs
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+  
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  
+      - name: Template Helm Files
+        run: |
+          mkdir -p template-logs
+          echo "### Helm Template Results" >> $GITHUB_STEP_SUMMARY
+          for file in $(find ./environments/ -name '*.yaml'); do
+            echo "Templating $file"
+            helm template charts/* -f $file --namespace $(basename $(dirname $file)) > template-logs/$(basename $file).log 2>&1
+            if [ $? -ne 0 ]; then
+              echo "::error file=$file::Helm template failed for $file"
+              echo "- ❌ $file: Failed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ✅ $file: Passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+  
+      - name: Upload Template Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-logs
+          path: template-logs

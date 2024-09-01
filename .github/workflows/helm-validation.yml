@@ -61,7 +61,7 @@ jobs:
           echo "### Helm Template Results" >> $GITHUB_STEP_SUMMARY
           for file in $(find ./environments/ -name '*.yaml'); do
             echo "Templating $file"
-            helm template ./charts/cloud-iot-chart -f $file --namespace $(basename $(dirname $file)) > template-logs/$(basename $file).log 2>&1
+            helm template . -f $file --namespace $(basename $(dirname $file)) > template-logs/$(basename $file).log 2>&1
             if [ $? -ne 0 ]; then
               echo "::error file=$file::Helm template failed for $file"
               echo "- ❌ $file: Failed" >> $GITHUB_STEP_SUMMARY

@@ -1,10 +1,6 @@
 # :cloud: Cloud IoT Helm Chart
 
-## :bookmark_tabs: Overview
-
-This Helm chart deploys a set of microservices for a Cloud IoT platform. It includes services like `goApi`, `loki`, and `grafana`, along with their corresponding configuration, deployment, and service resources.
-
-This Helm chart is an extension of the Cloud IoT microservices deployment found in the [cloud-iot-microservices-deployment](https://github.com/manujose94/cloud-iot-microservices-deployment) repository. It builds on the Kubernetes manifests provided in the [kubernetes](https://github.com/manujose94/cloud-iot-microservices-deployment/tree/main/kubernetes) directory of that project, offering a more streamlined, configurable, and reusable solution for deploying the platform's services.
+Idea and extension of [cloud-iot-microservices-deployment](https://github.com/manujose94/cloud-iot-microservices-deployment).
 
 ## :scroll: Table of Contents
 
@@ -36,6 +32,56 @@ This Helm chart is an extension of the Cloud IoT microservices deployment found 
   - [Unit Testing](#heavy_check_mark-unit-testing)
 - [References](#books-references)
 
+## :bookmark_tabs: Overview
+
+This Helm chart deploys a set of microservices for a Cloud IoT platform. It includes services like `goApi`, `loki`, and `grafana`, along with their corresponding configuration, deployment, and service resources.
+
+This Helm chart is an extension of the Cloud IoT microservices deployment found in the [cloud-iot-microservices-deployment](https://github.com/manujose94/cloud-iot-microservices-deployment) repository. It builds on the Kubernetes manifests provided in the [kubernetes](https://github.com/manujose94/cloud-iot-microservices-deployment/tree/main/kubernetes) directory of that project, offering a more streamlined, configurable, and reusable solution for deploying the platform's services.
+
+
+### Main Chart and Dependencies
+
+The `cloud-iot-chart` serves as the main Helm chart for deploying the Cloud IoT platform. It manages the deployment of multiple dependencies, which include:
+
+- **Application**: Manages the core microservices and applications required for the platform.
+- **Database**: Handles the deployment of database services such as PostgreSQL and Redis.
+- **Monitoring**: Deploys monitoring tools like Prometheus and Grafana.
+
+These dependencies are configured in the `Chart.yaml` file as follows:
+
+```yaml
+apiVersion: v2
+name: cloud-iot-chart
+description: A Helm chart for the Cloud IoT project
+version: 0.1.0
+dependencies:
+  - name: application
+    version: 0.1.0
+    repository: file://charts/applications
+  - name: monitoring
+    version: 0.1.0
+    repository: file://charts/monitoring
+  - name: database
+    version: 0.1.0
+    repository: file://charts/database
+    condition: database.enabled
+```
+
+### Database Dependency and Deployment
+
+The deployment of the database dependency is conditional, controlled by the `database.enabled` flag in the `values.yaml` file. If enabled, the database services (e.g., PostgreSQL, Redis) will be deployed alongside the application services.
+
+**Important Note:**
+
+The **applcation** deployment  can have database dependency (env.*TEST_PROPUSE=true* on configmap). So the `database.enabled` flag must set to `true`, it's essential to deploy both the application and the database services together to avoid any runtime issues. Ensure that the dependent applications are also deployed to utilize the database services appropriately.
+
+To deploy the chart with the database enabled, use the following command:
+
+```bash
+helm upgrade --install cloud-iot . \
+  --set database.enabled=true
+```
+
 ## :clipboard: Prerequisites
 
 - Kubernetes cluster (v1.14 or later)
@@ -44,7 +90,14 @@ This Helm chart is an extension of the Cloud IoT microservices deployment found 
 
 ## :rocket: Installation
 
-You can install the Helm chart with the following command:
+Install all Helm chart project:
+
+```bash
+helm install cloud-iot .
+```
+
+
+Install the specific Helm chart with the following command:
 
 ```bash
 helm install cloud-iot ./charts/applications

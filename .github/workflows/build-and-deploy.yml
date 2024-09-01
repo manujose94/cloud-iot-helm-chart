@@ -1,0 +1,44 @@
+name: Build and Deploy Helm Chart
+
+on:
+  workflow_run:
+    workflows: ["Validate Helm Chart"]
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Build Helm Chart
+        run: |
+          helm package ./charts/cloud-iot-chart -d packaged-charts
+
+      - name: Upload Helm Chart as Release Asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.repository.releases_url }}/latest/assets?name=cloud-iot-chart-${{ github.sha }}.tgz
+          asset_path: packaged-charts/cloud-iot-chart-*.tgz
+          asset_name: cloud-iot-chart-${{ github.sha }}.tgz
+          asset_content_type: application/gzip
+          
+      - name: Create Summary
+        run: |
+          echo "## Helm Chart Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Chart Name:** cloud-iot-chart" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Asset:** [Download Helm Chart](https://github.com/${{ github.repository }}/releases/latest/download/cloud-iot-chart-${{ github.sha }}.tgz)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Output URL to Console
+        run: |
+          echo "Helm chart successfully uploaded. You can download it from the following URL:"
+          echo "https://github.com/${{ github.repository }}/releases/latest/download/cloud-iot-chart-${{ github.sha }}.tgz"

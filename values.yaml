@@ -38,7 +38,7 @@ databases:
   enabled: true
   postgres:
     enabled: false
-    image: mamarbao/postgres:2.0
+    image: mamarbao/postgres:2.2.0
     replicas: 1
     
   redis:

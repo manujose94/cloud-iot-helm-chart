@@ -20,14 +20,14 @@ deployments:
   goApi:
     enabled: true
     replicas: 1
-    image: mamarbao/go-api:1.7.0
+    image: mamarbao/go-api:1.8.1
     sidecarImage: fluent/fluent-bit:2.0.0
     resources: *defaultResources    
 
   goSimulator:
     enabled: true
     replicas: 1
-    image: mamarbao/go-simulator:1.0.0
+    image: mamarbao/go-simulator:1.6.0
     sidecarImage: fluent/fluent-bit:2.0.0
     resources: *defaultResources
 
@@ -51,7 +51,7 @@ databases:
   enabled: true
   postgres:
     enabled: true
-    image: mamarbao/postgres:2.0
+    image: mamarbao/postgres:2.2.0
     replicas: 1
     configMap:
       DB_HOST: postgres-service

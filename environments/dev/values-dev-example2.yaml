@@ -49,7 +49,7 @@ deployments:
 
 postgres:
   enabled: true  # Enable for testing purposes
-  image: mamarbao/postgres:2.0
+  image: mamarbao/postgres:2.2.0
   replicas: 1
   resources:
     requests:

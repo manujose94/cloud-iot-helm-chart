@@ -198,7 +198,7 @@ This section allows you to configure database-related settings.
 | -------------------------------------- | ---------------------------------------------------------- | ------------------------ |
 | `databases.enabled`                    | Enable database-related deployments                        | `false`                  |
 | `databases.postgres.enabled`           | Enable the PostgreSQL deployment                           | `true`                   |
-| `databases.postgres.image`             | Image for the PostgreSQL deployment                        | `mamarbao/postgres:2.0`  |
+| `databases.postgres.image`             | Image for the PostgreSQL deployment                        | `mamarbao/postgres:2.2.0`  |
 | `databases.postgres.replicas`          | Number of replicas for the PostgreSQL deployment           | `1`                      |
 | `databases.postgres.configMap.DB_HOST` | Hostname for the PostgreSQL service                        | `postgres-service`       |
 | `databases.postgres.configMap.DB_PORT` | Port number for the PostgreSQL service                     | `"5432"`                 |
